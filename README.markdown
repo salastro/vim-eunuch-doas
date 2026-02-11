@@ -41,25 +41,11 @@ The plugin automatically detects which tool to use:
 
 ### Configuration
 
-To explicitly set your preference:
+To prefer doas over sudo:
 
 ```vim
-" Always prefer doas
-let g:eunuch_sudo_cmd = 'doas'
-
-" Always prefer sudo
-let g:eunuch_sudo_cmd = 'sudo'
-
-" Alternative: set this to prefer doas
 let g:eunuch_use_doas = 1
 ```
-
-### Commands
-
-| Sudo Command | Doas Equivalent | Description |
-|--------------|-----------------|-------------|
-| `:SudoEdit`  | `:DoasEdit`     | Edit a privileged file |
-| `:SudoWrite` | `:DoasWrite`    | Write a privileged file |
 
 ## Installation
 

@@ -87,13 +87,6 @@ COMMANDS                                        *eunuch-commands*
                         with the sudoedit_follow and sudoedit_checkdir sudo
                         options, respectively.
 
-                                                *eunuch-:DoasEdit*
-:DoasEdit [file]        Edit a file using doas.  This is the equivalent of
-                        :SudoEdit but uses `doas` instead of `sudo`.  doas is
-                        a simpler and more secure privilege escalation tool
-                        popular on BSD systems.  Like :SudoEdit, this allows
-                        you to write the file with :w! afterwards.
-
                                                 *eunuch-:DoasWrite*
 :DoasWrite              Use doas to write the file to disk.  This is the
                         equivalent of :SudoWrite but uses `doas` instead of
@@ -110,16 +103,10 @@ By default, eunuch auto-detects which privilege escalation tool to use:
 - Otherwise, sudo is used if available
 - Falls back to the other tool if the preferred one is not found
 
-                                                *g:eunuch_sudo_cmd*
-You can explicitly set the privilege escalation command preference:
->
-        let g:eunuch_sudo_cmd = 'doas'    " Always prefer doas
-        let g:eunuch_sudo_cmd = 'sudo'    " Always prefer sudo
-<
                                                 *g:eunuch_use_doas*
-Alternatively, set this to prefer doas:
+To prefer doas over sudo:
 >
-        let g:eunuch_use_doas = 1         " Prefer doas over sudo
+        let g:eunuch_use_doas = 1
 <
 Note: doas differs from sudo in that:
 - It uses `/etc/doas.conf` for configuration (simpler than sudoers)

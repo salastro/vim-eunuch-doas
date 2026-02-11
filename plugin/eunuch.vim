@@ -367,16 +367,7 @@ let s:error_file = tempname()
 " Detect available privilege escalation command (doas or sudo)
 " Returns 'doas' or 'sudo' based on availability and user preference
 function! s:DetectPrivCmd() abort
-  " User explicit preference takes priority
-  if exists('g:eunuch_sudo_cmd')
-    if g:eunuch_sudo_cmd ==# 'doas' && executable('doas')
-      return 'doas'
-    elseif g:eunuch_sudo_cmd ==# 'sudo' && executable('sudo')
-      return 'sudo'
-    endif
-  endif
-
-  " Check for g:eunuch_use_doas preference (alternative config)
+  " User preference: g:eunuch_use_doas
   if get(g:, 'eunuch_use_doas', 0) && executable('doas')
     return 'doas'
   endif
@@ -437,11 +428,17 @@ function! s:PrivReadCmd(priv_cmd) abort
   silent %delete_
   silent doautocmd <nomodeline> BufReadPre
   if priv_cmd ==# 'doas'
-    let [silent, cmd] = s:SilentDoasCmd('cat')
+    " doas doesn't have -e flag, use direct cat command
+    let local_nvim = has('nvim') && len($DISPLAY . $SECURITYSESSIONID . $TERM_PROGRAM)
+    if !local_nvim && (!has('gui_running') || &guioptions =~# '!')
+      redraw
+      echo
+    endif
+    execute 'silent read !doas cat "%" 2> ' . s:error_file
   else
     let [silent, cmd] = s:SilentSudoCmd('cat')
+    execute silent 'read !' . cmd . ' "%" 2> ' . s:error_file
   endif
-  execute silent 'read !' . cmd . ' "%" 2> ' . s:error_file
   let exit_status = v:shell_error
   silent 1delete_
   setlocal nomodified
@@ -460,11 +457,17 @@ function! s:PrivWriteCmd(priv_cmd) abort
   endif
   silent doautocmd <nomodeline> BufWritePre
   if priv_cmd ==# 'doas'
-    let [silent, cmd] = s:SilentDoasCmd(shellescape('sh -c cat>"$0"'))
+    " doas doesn't have -e flag, use tee to write the file
+    let local_nvim = has('nvim') && len($DISPLAY . $SECURITYSESSIONID . $TERM_PROGRAM)
+    if !local_nvim && (!has('gui_running') || &guioptions =~# '!')
+      redraw
+      echo
+    endif
+    execute 'silent write !doas tee "%" > /dev/null 2> ' . s:error_file
   else
     let [silent, cmd] = s:SilentSudoCmd(shellescape('sh -c cat>"$0"'))
+    execute silent 'write !' . cmd . ' "%" 2> ' . s:error_file
   endif
-  execute silent 'write !' . cmd . ' "%" 2> ' . s:error_file
   let error = s:PrivError()
   if !empty(error)
     return 'echoerr ' . string(error)
@@ -501,18 +504,6 @@ command! -bar -bang SudoWrite
       \ setlocal noreadonly |
       \ write!
 endif
-
-" DoasEdit: Edit a file using doas for privilege escalation
-command! -bar -bang -complete=file -nargs=? DoasEdit
-      \ let s:arg = resolve(<q-args>) |
-      \ call s:PrivSetup(fnamemodify(empty(s:arg) ? @% : s:arg, ':p'), empty(s:arg) && <bang>0, 'doas') |
-      \ if !&modified || !empty(s:arg) || <bang>0 |
-      \   exe 'edit<bang>' fnameescape(s:arg) |
-      \ endif |
-      \ if empty(<q-args>) || expand('%:p') ==# fnamemodify(s:arg, ':p') |
-      \   set noreadonly |
-      \ endif |
-      \ unlet s:arg
 
 " DoasWrite: Write a file using doas for privilege escalation
 if exists(':DoasWrite') != 2
