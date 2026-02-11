@@ -16,11 +16,50 @@ include:
   [guard][].
 * `:SudoWrite`: Write a privileged file with `sudo`.
 * `:SudoEdit`: Edit a privileged file with `sudo`.
+* `:DoasWrite`: Write a privileged file with `doas`.
+* `:DoasEdit`: Edit a privileged file with `doas`.
 * Typing a shebang line causes the file type to be re-detected.  Additionally
   the file will be automatically made executable (`chmod +x`) after the next
   write.
 
 [guard]: https://github.com/guard/guard
+
+## doas Support
+
+This plugin supports `doas` as an alternative to `sudo` for privilege
+escalation. [doas][] is a simpler and more secure replacement for sudo,
+particularly popular on BSD systems.
+
+[doas]: https://man.openbsd.org/doas
+
+### Auto-detection
+
+The plugin automatically detects which tool to use:
+- On BSD systems or when `/etc/doas.conf` exists, `doas` is preferred
+- Otherwise, `sudo` is used if available
+- Falls back to the other tool if preferred one is unavailable
+
+### Configuration
+
+To explicitly set your preference:
+
+```vim
+" Always prefer doas
+let g:eunuch_sudo_cmd = 'doas'
+
+" Always prefer sudo
+let g:eunuch_sudo_cmd = 'sudo'
+
+" Alternative: set this to prefer doas
+let g:eunuch_use_doas = 1
+```
+
+### Commands
+
+| Sudo Command | Doas Equivalent | Description |
+|--------------|-----------------|-------------|
+| `:SudoEdit`  | `:DoasEdit`     | Edit a privileged file |
+| `:SudoWrite` | `:DoasWrite`    | Write a privileged file |
 
 ## Installation
 
